@@ -1,0 +1,77 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+import pylab as pl
+import numpy as np
+%matplotlib inline
+
+df = pd.read_csv("Practice.csv")
+#df.fillna(0)
+
+# take a look at the dataset
+df.tail()
+
+# summarize the data
+df.describe()
+
+df.shape
+
+# check the column names
+df.columns
+
+
+# Create  new data frame CDF AND VIZ from existing dataframe
+# New dataframe contains selected columns from old dataframe
+cdf=df[['Date','Close','Volume','Company_ticker', 'Rate_of_Return', 'Close1']]
+cdf.head()
+
+viz= cdf[['Date','Close','Company_ticker','Volume', 'Rate_of_Return', 'Close1']]
+viz.hist
+viz.fillna(0)
+
+plt.show()
+plt.scatter(cdf.Close, cdf.Close1,  color='blue')
+plt.xlabel("Close")
+plt.ylabel("Close1")
+plt.show()
+
+msk = np.random.rand(len(df)) < 0.8
+train = cdf[msk]
+test = cdf[~msk]
+
+train.dropna()
+
+plt.scatter(train.Close,train.Close1, color = 'blue')
+plt.xlabel("Close")
+plt.ylabel("Close1")
+plt.show()
+
+#Regression model creation
+
+from sklearn import linear_model
+regr = linear_model.LinearRegression()
+train_x = np.asanyarray(train[['Close']])
+train_y = np.asanyarray(train[['Close1']])
+regr.fit(train_x,train_y)
+
+# The coefficients
+
+print ('Coefficients : ',regr.coef_)
+print ('Intercept : ',regr.intercept_)
+
+#Training
+train_y_ = regr.predict(train_x)
+plt.scatter(train.Rate_of_Return,train.Close, color ='blue')
+plt.plot(train_x, train_y_, color='black', linewidth =3)
+
+
+#Testing
+test_x = np.asanyarray(test[['Rate_of_Return']])
+test_y = np.asanyarray(test[['Close']])
+test_y_ = regr.predict(test_x)
+
+print ("Residual Sum of Squares : %.2f"
+      % np.mean((test_y_ - test_y)**2))
+
+# Explained variance score : 1 is perfect prediction
+
+print('Variance Score : %.2f' % regr.score(test_x,test_y))
